@@ -7,4 +7,7 @@ Usage guide by [Everything Presence](https://everythingsmarthome.github.io/every
 
 [Everything Presense Lite Github Repo](https://github.com/EverythingSmartHome/everything-presence-lite)
 
+## Requirement:
+Use the [corresponding config.yaml](https://github.com/htbuddha/everything-presence-lite/blob/main/common/ld2450-base.yaml) on the LD2450 device in order to have matching entity names etc.
+
 
