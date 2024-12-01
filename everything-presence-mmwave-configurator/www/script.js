@@ -615,73 +615,67 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Populate device selection drop-down
-  async function fetchDevices() {
-    const template = `
-        {% set devices = namespace(list=[]) %}
-            {% for device in states | map(attribute='entity_id') | map('device_id') | unique | reject('none') %}
-                {% set model = device_attr(device, 'model') %}
-                {% set manufacturer = device_attr(device, 'manufacturer') %}
-                {% if manufacturer == 'EverythingSmartTechnology' %}
-                    {% if model == 'Everything_Presence_Lite' or model == 'Everything Presence Lite' %}
-                        {% set devices.list = devices.list + [{'id': device, 'name': device_attr(device, 'name')}] %}
-                    {% endif %}
-                {% endif %}
-            {% endfor %}
-        {{ devices.list | tojson }}
-      `;
-    const result = await executeTemplate(template);
-    if (result) {
-      try {
-        const devices = JSON.parse(result);
-        populateDeviceDropdown(devices);
-      } catch (e) {
-        console.error("Error parsing devices JSON:", e);
-        alert("Failed to parse devices data.");
-      }
+   // Populate device selection drop-down
+async function fetchDevices() {
+  const template = `
+      {% set devices = namespace(list=[]) %}
+          {% for device in states | map(attribute='entity_id') | map('device_id') | unique | reject('none') %}
+              {% set devices.list = devices.list + [{'id': device, 'name': device_attr(device, 'name')}] %}
+          {% endfor %}
+      {{ devices.list | tojson }}
+    `;
+  const result = await executeTemplate(template);
+  if (result) {
+    try {
+      const devices = JSON.parse(result);
+      populateDeviceDropdown(devices);
+    } catch (e) {
+      console.error("Error parsing devices JSON:", e);
+      alert("Failed to parse devices data.");
     }
   }
+}
 
-  function populateDeviceDropdown(devices) {
-    const deviceSelect = document.getElementById("device-select");
-    deviceSelect.innerHTML =
-      '<option value="" disabled selected>Select a device</option>';
+function populateDeviceDropdown(devices) {
+  const deviceSelect = document.getElementById("device-select");
+  deviceSelect.innerHTML =
+    '<option value="" disabled selected>Select a device</option>';
 
-    devices.forEach((device) => {
-      const option = document.createElement("option");
-      option.value = device.id;
-      option.textContent = device.name;
-      deviceSelect.appendChild(option);
-    });
-  }
+  devices.forEach((device) => {
+    const option = document.createElement("option");
+    option.value = device.id;
+    option.textContent = device.name;
+    deviceSelect.appendChild(option);
+  });
+}
 
-  // Populate entity selection drop-down based on selected device
-  async function populateEntityDropdown(deviceId) {
-    const template = `
-          {{ device_entities('${deviceId}') | tojson }}
-      `;
-    const result = await executeTemplate(template);
-    if (result) {
-      try {
-        const entities = JSON.parse(result);
-        const requiredEntities = filterRequiredEntities(entities);
-        selectedEntities = requiredEntities.map((entityId) => ({
-          id: entityId,
-          name: entityId,
-        }));
+// Populate entity selection drop-down based on selected device
+async function populateEntityDropdown(deviceId) {
+  const template = `
+        {{ device_entities('${deviceId}') | tojson }}
+    `;
+  const result = await executeTemplate(template);
+  if (result) {
+    try {
+      const entities = JSON.parse(result);
+      const requiredEntities = filterRequiredEntities(entities);
+      selectedEntities = requiredEntities.map((entityId) => ({
+        id: entityId,
+        name: entityId,
+      }));
 
-        if (selectedEntities.length === 0) {
-          alert("No relevant entities found for this device.");
-          return;
-        }
-
-        startLiveRefresh();
-      } catch (e) {
-        console.error("Error parsing entities JSON:", e);
-        alert("Failed to parse entities data.");
+      if (selectedEntities.length === 0) {
+        alert("No relevant entities found for this device.");
+        return;
       }
+
+      startLiveRefresh();
+    } catch (e) {
+      console.error("Error parsing entities JSON:", e);
+      alert("Failed to parse entities data.");
     }
   }
+}
 
   // Function to filter required entities based on naming conventions
   function filterRequiredEntities(entities) {
